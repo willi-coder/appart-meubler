@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Réservation Appartements</title>
+<style>
+body {
+    font-family: Arial, sans-serif;
+    background: #e6f2e6;
+    margin: 0; padding: 0;
+}
+header {
+    background: #006400; /* vert foncé */
+    color: white;
+    padding: 20px;
+    text-align: center;
+}
+main {
+    padding: 20px;
+}
+form {
+    background: #f0fff0;
+    padding: 20px;
+    border-radius: 8px;
+    max-width: 600px;
+    margin: auto;
+    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+}
+label {
+    font-weight: bold;
+}
+input, select {
+    width: 100%;
+    padding: 8px;
+    margin: 5px 0 15px 0;
+    border-radius: 4px;
+    border: 1px solid #ccc;
+}
+button {
+    background: #006400; /* vert foncé */
+    color: white;
+    border: none;
+    padding: 12px 20px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 16px;
+}
+button:hover {
+    background: #004d00;
+}
+.option-container {
+    margin-bottom: 15px;
+}
+.hidden-field {
+    display: none;
+}
+#totalDisplay {
+    font-weight: bold;
+    margin-top: 10px;
+    font-size: 18px;
+    color: #006400;
+}
+</style>
+</head>
+<body>
+
+<header>
+<h1>Nos Appartements</h1>
+<p>Climatisés, sécurisés et propres. Réservez directement via WhatsApp.</p>
+</header>
+
+<main>
+
+<form id="reservationForm">
+
+<label>Nom :</label>
+<input type="text" id="nom" placeholder="Votre nom" required>
+
+<label>Téléphone :</label>
+<input type="tel" id="tel" placeholder="Votre numéro" required>
+
+<label>Appartement :</label>
+<select id="appartement">
+<option>101</option>
+<option>102</option>
+<option>103</option>
+<option>104</option>
+<option>105</option>
+<option>106</option>
+</select>
+
+<div class="option-container">
+<label><input type="checkbox" id="checkDetente"> Détente</label>
+<input type="time" id="detente" class="hidden-field">
+</div>
+
+<div class="option-container">
+<label><input type="checkbox" id="checkJournee"> Journée</label>
+<input type="date" id="journee" class="hidden-field">
+</div>
+
+<div class="option-container">
+<label><input type="checkbox" id="checkNuitee"> Nuitée</label>
+<input type="date" id="nuitee" class="hidden-field">
+</div>
+
+<div class="option-container">
+<label><input type="checkbox" id="checkSejour"> Séjour prolongé</label>
+<div class="hidden-field" id="sejourFields">
+    <label>Date de début :</label>
+    <input type="date" id="sejourDebut">
+    <label>Date de fin :</label>
+    <input type="date" id="sejourFin">
+</div>
+</div>
+
+<p id="totalDisplay">Total : 0 FCFA</p>
+
+<button type="button" onclick="envoyerReservation()">Envoyer la réservation</button>
+
+</form>
+
+</main>
+
+<script>
+// Tarifs
+const tarifs = {
+    "101": {detente: 5000, journee: 15000, nuitee: 10000, sejour: 10000},
+    "102": {detente: 5000, journee: 10000, nuitee: 8000, sejour: 8000},
+    "103": {detente: 5000, journee: 10000, nuitee: 10000, sejour: 10000},
+    "104": {detente: 5000, journee: 15000, nuitee: 10000, sejour: 10000},
+    "105": {detente: 5000, journee: 20000, nuitee: 15000, sejour: 15000},
+    "106": {detente: 5000, journee: 12000, nuitee: 10000, sejour: 10000}
+};
+
+// Affichage/cachage des champs
+document.getElementById('checkDetente').addEventListener('change', function() {
+    document.getElementById('detente').style.display = this.checked ? 'block' : 'none';
+    calculerTotal();
+});
+document.getElementById('checkJournee').addEventListener('change', function() {
+    document.getElementById('journee').style.display = this.checked ? 'block' : 'none';
+    calculerTotal();
+});
+document.getElementById('checkNuitee').addEventListener('change', function() {
+    document.getElementById('nuitee').style.display = this.checked ? 'block' : 'none';
+    calculerTotal();
+});
+document.getElementById('checkSejour').addEventListener('change', function() {
+    document.getElementById('sejourFields').style.display = this.checked ? 'block' : 'none';
+    calculerTotal();
+});
+
+// Recalculer le total quand on change une valeur
+document.getElementById('detente').addEventListener('change', calculerTotal);
+document.getElementById('journee').addEventListener('change', calculerTotal);
+document.getElementById('nuitee').addEventListener('change', calculerTotal);
+document.getElementById('sejourDebut').addEventListener('change', calculerTotal);
+document.getElementById('sejourFin').addEventListener('change', calculerTotal);
+document.getElementById('appartement').addEventListener('change', calculerTotal);
+
+function calculerTotal() {
+    const appart = document.getElementById("appartement").value;
+    let total = 0;
+
+    if(document.getElementById("checkDetente").checked && document.getElementById("detente").value)
+        total += tarifs[appart].detente;
+
+    if(document.getElementById("checkJournee").checked && document.getElementById("journee").value)
+        total += tarifs[appart].journee;
+
+    if(document.getElementById("checkNuitee").checked && document.getElementById("nuitee").value)
+        total += tarifs[appart].nuitee;
+
+    if(document.getElementById("checkSejour").checked) {
+        const debut = document.getElementById("sejourDebut").value;
+        const fin = document.getElementById("sejourFin").value;
+        if(debut && fin) {
+            const diffDays = Math.ceil((new Date(fin)-new Date(debut))/(1000*60*60*24)) + 1;
+            total += tarifs[appart].sejour * diffDays;
+        }
+    }
+
+    document.getElementById("totalDisplay").textContent = "Total : " + total + " FCFA";
+}
+
+function envoyerReservation() {
+    const nom = document.getElementById("nom").value.trim();
+    const tel = document.getElementById("tel").value.trim();
+    const appart = document.getElementById("appartement").value;
+
+    let message = `Bonjour, je souhaite réserver l'appartement ${appart}.\nNom : ${nom}\nTéléphone : ${tel}`;
+    let total = 0;
+
+    if(document.getElementById("checkDetente").checked) {
+        const detenteHeure = document.getElementById("detente").value;
+        if(detenteHeure) {
+            message += `\nDétente à ${detenteHeure} (Prix : ${tarifs[appart].detente} FCFA)`;
+            total += tarifs[appart].detente;
+        }
+    }
+
+    if(document.getElementById("checkJournee").checked) {
+        const journeeDate = document.getElementById("journee").value;
+        if(journeeDate) {
+            message += `\nJournée le ${journeeDate} (Prix : ${tarifs[appart].journee} FCFA)`;
+            total += tarifs[appart].journee;
+        }
+    }
+
+    if(document.getElementById("checkNuitee").checked) {
+        const nuiteeDate = document.getElementById("nuitee").value;
+        if(nuiteeDate) {
+            message += `\nNuitée le ${nuiteeDate} (Prix : ${tarifs[appart].nuitee} FCFA)`;
+            total += tarifs[appart].nuitee;
+        }
+    }
+
+    if(document.getElementById("checkSejour").checked) {
+        const debut = document.getElementById("sejourDebut").value;
+        const fin = document.getElementById("sejourFin").value;
+        if(!debut || !fin) {
+            alert("Veuillez remplir la date de début et de fin du séjour.");
+            return;
+        }
+        const diffDays = Math.ceil((new Date(fin)-new Date(debut))/(1000*60*60*24)) + 1;
+        message += `\nSéjour du ${debut} au ${fin} (${diffDays} jour(s)) (Prix par jour : ${tarifs[appart].sejour} FCFA)`;
+        total += tarifs[appart].sejour * diffDays;
+    }
+
+    if(total === 0) {
+        alert("Veuillez sélectionner au moins une option valide.");
+        return;
+    }
+
+    message += `\n\nTotal à payer : ${total} FCFA`;
+
+    const numero = "242069359095";
+    const url = `https://wa.me/${numero}?text=${encodeURIComponent(message)}`;
+    window.open(url, "_blank");
+}
+</script>
+
+</body>
+</html>
